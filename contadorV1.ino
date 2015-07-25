@@ -3,22 +3,27 @@
 // se muestra el funcionamiento del prototipo para 4 tipos diferentes de celulas.
 
 #include <UTFT.h>
+#include <UTouch.h>
 // Declarando nuestro tamaños de letras (fonts)
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 extern uint8_t SevenSegNumFont[];
 
 UTFT myGLCD(ITDB28,38,39,40,41);
+UTouch  myTouch( 6, 5, 4, 3, 2);
 
 int num=3;
 String el[] = {"Conteo","Estadistic","Ayuda"};
 int numcels=7;
 String cel[]={"LINFOCITOS..","BASOFILOS...","MONOCITOS...","NEUTROFILOS.","EOSINOFILOS.","LINFOCITOS T","LINFOCITOS B"};
 int contCel[]={10,15,15,20,10,5,10,20,0,0}; // array de contadores
+// coordenadas del touch
+int x, y;
 
 
 
-int viewState = 0; // la vista principal es 0
+int viewState = -1; // la vista principal es 0; vista de conteo es 1.
+
 void headerFooter()
 {
   // dibujando bordes superior e inferior
@@ -273,15 +278,56 @@ void setup()
   myGLCD.InitLCD();
   myGLCD.clrScr();
   Serial.begin(115200);
+  // variables del touch
+  myTouch.InitTouch();
+  myTouch.setPrecision(PREC_MEDIUM);
+  headerFooter();
+  navigator(el,3);
+
 }
 void loop()
 {
-  headerFooter();
-  conteoView(cel,numcels,contCel);
-  navigator(el,num);
-  delay(5000);
-  estadistView(cel,contCel,numcels);
-  navigator(el,num);
-  while(1);
+  while(1)
+  {
+    if(myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x=myTouch.getX();
+      y=myTouch.getY();
+      //
+      Serial.print(x);
+      Serial.print(" ; ");
+      Serial.println(y);
+      //dentro del area del navigator.
+      if(y>190 && y<210)
+      {
+        if(x>18 && x<110) // boton de conteo.
+        {
+          if(viewState!=0) // se redibuja el conteo siempre y cuando este en una vista diferente
+          {
+            conteoView(cel,numcels,contCel);
+            navigator(el,num);
+            viewState=0;
+          }
+        }
+        if(x>123 && x<212) // boton de estadisticas
+        {
+         if(viewState!=1)  // se redibuja las estadisticas siempre y cuando este en una vista diferente.
+         {
+           estadistView(cel, contCel,numcels);
+           navigator(el,num);
+           viewState=1;
+         }
+        }
+        if(x>225 && x<317) // boton de ayuda
+        {
+          
+        }
+      }
+      
+      
+      
+    }
+  }
 }
 
