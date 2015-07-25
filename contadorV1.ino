@@ -1,9 +1,15 @@
 // Version 1.0 del contador Leucocitario
 // 2015.07.23
 // se muestra el funcionamiento del prototipo para 4 tipos diferentes de celulas.
-
 #include <UTFT.h>
 #include <UTouch.h>
+// entradas digitales
+int celula0=30;
+int celula1=31;
+int celula2=32;
+int celula3=33;
+int celula4=34;
+
 // Declarando nuestro tamaños de letras (fonts)
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
@@ -14,9 +20,9 @@ UTouch  myTouch( 6, 5, 4, 3, 2);
 
 int num=3;
 String el[] = {"Conteo","Estadistic","Ayuda"};
-int numcels=7;
-String cel[]={"LINFOCITOS..","BASOFILOS...","MONOCITOS...","NEUTROFILOS.","EOSINOFILOS.","LINFOCITOS T","LINFOCITOS B"};
-int contCel[]={10,15,15,20,10,5,10,20,0,0}; // array de contadores
+int numcels=5;
+String cel[]={"LINFOCITOS..","BASOFILOS...","MONOCITOS...","NEUTROFILOS.","EOSINOFILOS."};
+int contCel[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // array de contadores
 // coordenadas del touch
 int x, y;
 
@@ -75,6 +81,27 @@ void conteoView(String celulas[],int numcel,int conCel[])
   myGLCD.setFont(BigFont);
   myGLCD.print("- CONTEO -",CENTER,60);
 }
+void actualizarConteo(String celulas[],int numcel,int conCel[])
+{
+  String mensaje;
+  // esta es la funcion que despliega la vista principal.
+  myGLCD.setBackColor(200,80,20);
+  myGLCD.setColor(0,0,0);
+  myGLCD.setFont(SmallFont);
+  int total=0;
+  for(int i=0; i<numcel;i++)
+  {
+    mensaje=String(i+1)+":"+celulas[i] + ".: " + String(conCel[i]);
+    myGLCD.print(mensaje,50,i*14+100);
+    total+=conCel[i];
+  }
+  mensaje= "TOTAL: " + String(total);
+  myGLCD.print(mensaje,150,198);
+  myGLCD.setFont(BigFont);
+  myGLCD.print("- CONTEO -",CENTER,60);
+  
+}
+
 
 void estadistView(String celulas[], int contCel[],int numcelulas)
 {
@@ -277,18 +304,64 @@ void setup()
 {
   myGLCD.InitLCD();
   myGLCD.clrScr();
+  // entradas digitales configuracion
+  pinMode(celula0,INPUT);
+  pinMode(celula1,INPUT);
+  pinMode(celula2,INPUT);
+  pinMode(celula3,INPUT);
+  pinMode(celula4,INPUT);
+  
+  
+  
   Serial.begin(115200);
   // variables del touch
   myTouch.InitTouch();
   myTouch.setPrecision(PREC_MEDIUM);
   headerFooter();
   navigator(el,3);
-
+  
+  
+  
 }
 void loop()
 {
   while(1)
   {
+    if(viewState==0) // si se encuentra en el estado de conteo:
+    {
+      if(digitalRead(celula0)==LOW)
+      {
+        contCel[0]+=1;
+        actualizarConteo(cel,numcels,contCel);
+      }
+      if(digitalRead(celula1)==LOW)
+      {
+        contCel[1]+=1;
+        actualizarConteo(cel,numcels,contCel);
+      }
+      if(digitalRead(celula2)==LOW)
+      {
+        contCel[2]+=1;
+        actualizarConteo(cel,numcels,contCel);
+      }
+      if(digitalRead(celula3)==LOW)
+      {
+        contCel[3]+=1;
+        actualizarConteo(cel,numcels,contCel);
+      }
+      if(digitalRead(celula4)==LOW)
+      {
+        contCel[4]+=1;
+        actualizarConteo(cel,numcels,contCel);
+      }
+
+
+    }
+    
+    
+    
+    
+    // logica del touch.
     if(myTouch.dataAvailable())
     {
       myTouch.read();
